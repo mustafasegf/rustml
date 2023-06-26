@@ -1,6 +1,9 @@
 mod ops;
 
 use num_traits::{NumAssignRef, NumRef};
+use rand::distributions::Distribution;
+use rand::prelude::*;
+use rand::distributions::Standard;
 use std::fmt::Display;
 use std::ops::Deref;
 
@@ -10,10 +13,16 @@ pub struct Matrix<T: NumRef + NumAssignRef + Copy + Display> {
     rows: usize,
     cols: usize,
 }
-
-impl<T: NumRef + NumAssignRef + Copy + Display> Matrix<T> {
+impl<T: NumRef + NumAssignRef  + Copy + Display> Matrix<T>
+    where Standard: Distribution<T>
+ {
     pub fn new(row: usize, col: usize) -> Self {
         Self::from_iter(row, col, std::iter::repeat(T::zero()))
+    }
+
+    pub fn new_random(row: usize, col: usize) -> Self {
+        let mut rng = rand::thread_rng();
+        Self::from_iter(row, col, std::iter::repeat_with(|| rng.gen()))
     }
 
     pub fn from_iter<I>(row: usize, col: usize, iter: I) -> Self

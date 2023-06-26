@@ -1,7 +1,9 @@
 use std::fmt::Display;
-use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 use num_traits::{NumAssignRef, NumRef};
+use rand::distributions::Standard;
+use rand::prelude::*;
 
 use super::Matrix;
 
@@ -45,21 +47,27 @@ where
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Sub for &'a Matrix<T>
-where
-    &'a T: Sub<&'b T, Output = T>,
-{
-    type Output = Matrix<T>;
-
-    fn sub(self, rhs: &'b Matrix<T>) -> Self::Output {
+impl<T: NumRef + NumAssignRef + Copy + Display> AddAssign for Matrix<T> {
+    fn add_assign(&mut self, rhs: Self) {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
 
-        Matrix {
-            rows: self.rows,
-            cols: self.cols,
-            data: self.iter().zip(rhs.iter()).map(|(a, b)| a - b).collect(),
-        }
+        self.data
+            .iter_mut()
+            .zip(rhs.data.into_iter())
+            .for_each(|(a, b)| *a += b);
+    }
+}
+
+impl<'a, T: NumRef + NumAssignRef + Copy + Display> AddAssign<&'a Matrix<T>> for Matrix<T> {
+    fn add_assign(&mut self, rhs: &'a Self) {
+        assert!(self.rows == rhs.rows);
+        assert!(self.cols == rhs.cols);
+
+        self.data
+            .iter_mut()
+            .zip(rhs.iter())
+            .for_each(|(a, b)| *a += b);
     }
 }
 
@@ -85,27 +93,21 @@ impl<T: NumRef + NumAssignRef + Copy + Display> Sub for Matrix<T> {
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> AddAssign for Matrix<T> {
-    fn add_assign(&mut self, rhs: Self) {
+impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Sub for &'a Matrix<T>
+where
+    &'a T: Sub<&'b T, Output = T>,
+{
+    type Output = Matrix<T>;
+
+    fn sub(self, rhs: &'b Matrix<T>) -> Self::Output {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
 
-        self.data
-            .iter_mut()
-            .zip(rhs.data.into_iter())
-            .for_each(|(a, b)| *a += b);
-    }
-}
-
-impl<'a, T: NumRef + NumAssignRef + Copy + Display> AddAssign<&'a Matrix<T>> for Matrix<T> {
-    fn add_assign(&mut self, rhs: &'a Self) {
-        assert!(self.rows == rhs.rows);
-        assert!(self.cols == rhs.cols);
-
-        self.data
-            .iter_mut()
-            .zip(rhs.iter())
-            .for_each(|(a, b)| *a += b);
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data: self.iter().zip(rhs.iter()).map(|(a, b)| a - b).collect(),
+        }
     }
 }
 
@@ -133,7 +135,10 @@ impl<'a, T: NumRef + NumAssignRef + Copy + Display> SubAssign<&'a Matrix<T>> for
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> Mul for Matrix<T> {
+impl<T: NumRef + NumAssignRef + Copy + Display> Mul for Matrix<T>
+where
+    Standard: Distribution<T>,
+{
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -159,5 +164,91 @@ impl<T: NumRef + NumAssignRef + Copy + Display> Mul for Matrix<T> {
             rows: self.rows,
             cols: self.cols,
         }
+    }
+}
+
+impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Mul for &'a Matrix<T>
+where
+    &'a T: Mul<&'b T, Output = T>,
+    Standard: Distribution<T>,
+{
+    type Output = Matrix<T>;
+
+    fn mul(self, rhs: &'b Matrix<T>) -> Self::Output {
+        assert!(self.cols == rhs.rows);
+
+        let mut data = Vec::with_capacity(self.rows * rhs.cols);
+
+        for row in 0..self.rows {
+            for col in 0..rhs.cols {
+                let row_iter = self.get_row(row).unwrap();
+                let col_iter = rhs.get_col(col).unwrap();
+
+                let acc = row_iter
+                    .zip(col_iter)
+                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+
+                data.push(acc);
+            }
+        }
+
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data,
+        }
+    }
+}
+
+impl<T: NumRef + NumAssignRef + Copy + Display> MulAssign<Matrix<T>> for Matrix<T>
+where
+    Standard: Distribution<T>,
+{
+    fn mul_assign(&mut self, rhs: Self) {
+        assert!(self.cols == rhs.rows);
+
+        let mut data = Vec::with_capacity(self.rows * rhs.cols);
+
+        for row in 0..self.rows {
+            for col in 0..rhs.cols {
+                let row_iter = self.get_row(row).unwrap();
+                let col_iter = rhs.get_col(col).unwrap();
+
+                let acc = row_iter
+                    .zip(col_iter)
+                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+
+                data.push(acc);
+            }
+        }
+
+        self.data = data;
+    }
+}
+
+impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> MulAssign<&'a Matrix<T>> for Matrix<T>
+where
+    &'a T: Mul<&'b T, Output = T>,
+    Standard: Distribution<T>,
+{
+    fn mul_assign(&mut self, rhs: &'b Matrix<T>) {
+        assert!(self.cols == rhs.rows);
+
+        let mut data = Vec::with_capacity(self.rows * rhs.cols);
+
+        for row in 0..self.rows {
+            for col in 0..rhs.cols {
+                let row_iter = self.get_row(row).unwrap();
+                let col_iter = rhs.get_col(col).unwrap();
+
+                let acc = row_iter
+                    .zip(col_iter)
+                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+
+                data.push(acc);
+            }
+        }
+
+        self.data = data;
     }
 }

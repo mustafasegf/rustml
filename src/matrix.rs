@@ -1,8 +1,8 @@
 mod ops;
 
+use num_traits::{NumAssignRef, NumRef};
 use std::fmt::Display;
 use std::ops::Deref;
-use num_traits::{NumRef, NumAssignRef};
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
 pub struct Matrix<T: NumRef + NumAssignRef + Clone + Display> {

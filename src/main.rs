@@ -7,6 +7,9 @@ fn main() {
     let mut arr3 = &arr1 + &arr2;
     println!("{}", arr3);
 
+    arr3 += &arr1;
+    println!("{}", arr3);
+
     arr3 += arr1;
     println!("{}", arr3);
 }

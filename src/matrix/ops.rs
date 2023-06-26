@@ -1,12 +1,12 @@
 
 use std::fmt::Display;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, AddAssign, SubAssign};
 
-use num_traits::NumRef;
+use num_traits::{NumRef, NumAssignRef};
 
 use super::Matrix;
 
-impl<T: NumRef + Clone + Display> Add for Matrix<T> {
+impl<T: NumRef + NumAssignRef + Clone + Display> Add for Matrix<T> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -28,7 +28,7 @@ impl<T: NumRef + Clone + Display> Add for Matrix<T> {
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + Clone + Display> Add for &'a Matrix<T>
+impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Clone + Display> Add for &'a Matrix<T>
 where
     &'a T: Add<&'b T, Output = T>,
 {
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + Clone + Display> Sub for &'a Matrix<T>
+impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Clone + Display> Sub for &'a Matrix<T>
 where
     &'a T: Sub<&'b T, Output = T>,
 {
@@ -64,7 +64,7 @@ where
     }
 }
 
-impl<T: NumRef + Clone + Display> Sub for Matrix<T> {
+impl<T: NumRef + NumAssignRef + Clone + Display> Sub for Matrix<T> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -83,5 +83,27 @@ impl<T: NumRef + Clone + Display> Sub for Matrix<T> {
             rows: self.rows,
             cols: self.cols,
         }
+    }
+}
+
+impl<T: NumRef + NumAssignRef + Clone + Display> AddAssign for Matrix<T> {
+    fn add_assign(&mut self, rhs: Self) {
+        assert!(self.rows == rhs.rows);
+        assert!(self.cols == rhs.cols);
+
+        self.data.iter_mut()
+            .zip(rhs.data.into_iter())
+            .for_each(|(a, b)| *a += b);
+    }
+}
+
+impl<T: NumRef + NumAssignRef + Clone + Display> SubAssign for Matrix<T> {
+    fn sub_assign(&mut self, rhs: Self) {
+        assert!(self.rows == rhs.rows);
+        assert!(self.cols == rhs.cols);
+
+        self.data.iter_mut()
+            .zip(rhs.data.into_iter())
+            .for_each(|(a, b)| *a -= b);
     }
 }

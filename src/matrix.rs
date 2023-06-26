@@ -5,13 +5,13 @@ use std::fmt::Display;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd)]
-pub struct Matrix<T: NumRef + NumAssignRef + Clone + Display> {
+pub struct Matrix<T: NumRef + NumAssignRef + Copy + Display> {
     data: Vec<T>,
     rows: usize,
     cols: usize,
 }
 
-impl<T: NumRef + NumAssignRef + Clone + Display> Matrix<T> {
+impl<T: NumRef + NumAssignRef + Copy + Display> Matrix<T> {
     pub fn new(row: usize, col: usize) -> Self {
         Self::from_iter(row, col, std::iter::repeat(T::zero()))
     }
@@ -36,9 +36,30 @@ impl<T: NumRef + NumAssignRef + Clone + Display> Matrix<T> {
     pub fn cols(&self) -> usize {
         self.cols
     }
+
+    pub fn get(&self, row: usize, col: usize) -> Option<&T> {
+        match row < self.rows && col < self.cols {
+            true => Some(&self.data[col + row * self.cols]),
+            false => None,
+        }
+    }
+
+    pub fn get_row(&self, row: usize) -> Option<impl Iterator<Item = &T>> {
+        match row < self.rows {
+            true => Some(self.data[row * self.cols..(row + 1) * self.cols].iter()),
+            false => None,
+        }
+    }
+
+    pub fn get_col(&self, col: usize) -> Option<impl Iterator<Item = &T>> {
+        match col < self.cols {
+            true => Some((0..self.rows).map(move |row| self.get(row, col).unwrap())),
+            false => None,
+        }
+    }
 }
 
-impl<T: NumRef + NumAssignRef + Clone + Display> Deref for Matrix<T> {
+impl<T: NumRef + NumAssignRef + Copy + Display> Deref for Matrix<T> {
     type Target = Vec<T>;
 
     fn deref(&self) -> &Self::Target {
@@ -46,7 +67,7 @@ impl<T: NumRef + NumAssignRef + Clone + Display> Deref for Matrix<T> {
     }
 }
 
-impl<T: NumRef + NumAssignRef + Clone + Display> std::fmt::Display for Matrix<T> {
+impl<T: NumRef + NumAssignRef + Copy + Display> std::fmt::Display for Matrix<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in 0..self.rows {
             for col in 0..self.cols {

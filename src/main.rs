@@ -1,12 +1,12 @@
-use std::{fmt::Display};
-use std::ops::{Add, Sub, Deref};
+use std::fmt::Display;
+use std::ops::{Add, Deref, Sub};
 
 use num_traits::NumRef;
 fn main() {
     let arr1 = Matrix::from_iter(3, 3, 0..9);
     let arr2 = Matrix::from_iter(3, 3, 10..);
     println!("{}", arr1);
-    let arr3 = arr1 + arr2;
+    let arr3 = &arr1 + &arr2;
     println!("{}", arr3);
 }
 
@@ -66,6 +66,41 @@ impl<T: NumRef + Clone + Display> Add for Matrix<T> {
     }
 }
 
+impl<'a: 'b, 'b, T: NumRef + Clone + Display> Add for &'a Matrix<T>
+where
+    &'a T: Add<&'b T, Output = T>,
+{
+    type Output = Matrix<T>;
+
+    fn add(self, rhs: &'b Matrix<T>) -> Self::Output {
+        assert!(self.rows == rhs.rows);
+        assert!(self.cols == rhs.cols);
+
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data: self.iter().zip(rhs.iter()).map(|(a, b)| a + b).collect(),
+        }
+    }
+}
+
+impl<'a: 'b, 'b, T: NumRef + Clone + Display> Sub for &'a Matrix<T>
+where
+    &'a T: Sub<&'b T, Output = T>,
+{
+    type Output = Matrix<T>;
+
+    fn sub(self, rhs: &'b Matrix<T>) -> Self::Output {
+        assert!(self.rows == rhs.rows);
+        assert!(self.cols == rhs.cols);
+
+        Matrix {
+            rows: self.rows,
+            cols: self.cols,
+            data: self.iter().zip(rhs.iter()).map(|(a, b)| a - b).collect(),
+        }
+    }
+}
 
 impl<T: NumRef + Clone + Display> Sub for Matrix<T> {
     type Output = Self;

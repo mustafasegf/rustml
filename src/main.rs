@@ -1,12 +1,26 @@
+use rand::prelude::*;
 use rustml::Matrix;
 
 fn main() {
-    let mut arr1 = Matrix::from_iter(3, 3, 0..9);
-    let arr2 = Matrix::from_iter(3, 3, 10..);
+    // let mut rng = rand::thread_rng();
+    let mut rng = StdRng::seed_from_u64(1);
 
-    let arr3 = &arr1 * &arr2;
-    arr1 *= &arr2;
+    let mut arr1 = Matrix::from_iter(3, 3, std::iter::repeat_with(|| rng.gen_range(0.0..1.0)));
+    let arr2 = Matrix::from_iter(3, 3, std::iter::repeat_with(|| rng.gen_range(0.0..1.0)));
 
-    println!("{}", arr1);
-    println!("{}", arr3);
+    let data =  vec![
+        vec![0, 0, 0],
+        vec![0, 1, 1],
+        vec![1, 0, 1],
+        vec![1, 1, 1],
+    ];
+
+    
+    let eps = 1e-1;
+    let rate = 1e-1;
+
+    for _ in (0..1_000) {
+
+    }
+
 }

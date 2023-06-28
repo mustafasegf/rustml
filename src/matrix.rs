@@ -37,10 +37,6 @@ impl Matrix {
 
     pub fn get(&self, row: usize, col: usize) -> Option<&f64> {
         self.data.get(col + row * self.cols)
-        // match row < self.rows && col < self.cols {
-        //     true => Some(&self.data[col + row * self.cols]),
-        //     false => None,
-        // }
     }
 
     pub fn get_mut(&mut self, row: usize, col: usize) -> Option<&mut f64> {
@@ -89,8 +85,6 @@ impl Matrix {
         }
     }
 
-    
-
     pub fn sigmoid(&self) -> Self {
         Self::from_iter(
             self.rows,
@@ -117,5 +111,110 @@ impl std::fmt::Display for Matrix {
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let m = Matrix::new(2, 2);
+        assert_eq!(m.rows(), 2);
+        assert_eq!(m.cols(), 2);
+        assert_eq!(m.get(0, 0), Some(&0.0));
+        assert_eq!(m.get(0, 1), Some(&0.0));
+        assert_eq!(m.get(1, 0), Some(&0.0));
+        assert_eq!(m.get(1, 1), Some(&0.0));
+    }
+
+    #[test]
+    fn test_from_iter() {
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let m = Matrix::from_iter(2, 2, data);
+        assert_eq!(m.rows(), 2);
+        assert_eq!(m.cols(), 2);
+        assert_eq!(m.get(0, 0), Some(&1.0));
+        assert_eq!(m.get(0, 1), Some(&2.0));
+        assert_eq!(m.get(1, 0), Some(&3.0));
+        assert_eq!(m.get(1, 1), Some(&4.0));
+    }
+
+    #[test]
+    fn test_get_set() {
+        let mut m = Matrix::new(2, 2);
+        assert_eq!(m.set(0, 0, 1.0), Some(0.0));
+        assert_eq!(m.get(0, 0), Some(&1.0));
+        assert_eq!(m.set(1, 1, 2.0), Some(0.0));
+        assert_eq!(m.get(1, 1), Some(&2.0));
+    }
+
+    #[test]
+    fn test_get_row() {
+        let m = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(
+            m.get_row(0).map(|row| row.collect::<Vec<_>>()),
+            Some(vec![&1.0, &2.0])
+        );
+        assert_eq!(
+            m.get_row(1).map(|row| row.collect::<Vec<_>>()),
+            Some(vec![&3.0, &4.0])
+        );
+        assert_eq!(m.get_row(2).map(|row| row.collect::<Vec<_>>()), None);
+    }
+
+    #[test]
+    fn test_get_col() {
+        let m = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(
+            m.get_col(0).map(|row| row.collect::<Vec<_>>()),
+            Some(vec![&1.0, &3.0])
+        );
+        assert_eq!(
+            m.get_col(1).map(|row| row.collect::<Vec<_>>()),
+            Some(vec![&2.0, &4.0])
+        );
+        assert_eq!(m.get_col(2).map(|row| row.collect::<Vec<_>>()), None);
+    }
+
+    #[test]
+    fn test_get_row_matrix() {
+        let m = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(
+            m.get_row_matrix(0),
+            Some(Matrix::from_iter(1, 2, vec![1.0, 2.0]))
+        );
+        assert_eq!(
+            m.get_row_matrix(1),
+            Some(Matrix::from_iter(1, 2, vec![3.0, 4.0]))
+        );
+        assert_eq!(m.get_row_matrix(2), None);
+    }
+
+    #[test]
+    fn test_get_col_matrix() {
+        let m = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        assert_eq!(
+            m.get_col_matrix(0),
+            Some(Matrix::from_iter(2, 1, vec![1.0, 3.0]))
+        );
+        assert_eq!(
+            m.get_col_matrix(1),
+            Some(Matrix::from_iter(2, 1, vec![2.0, 4.0]))
+        );
+        assert_eq!(m.get_col_matrix(2), None);
+    }
+
+    #[test]
+    fn test_sigmoid() {
+        let m = Matrix::from_iter(2, 2, vec![0.0, 1.0, 2.0, 3.0]);
+        let s = m.sigmoid();
+        assert_eq!(s.rows(), 2);
+        assert_eq!(s.cols(), 2);
+        assert_eq!(s.get(0, 0), Some(&0.5));
+        assert_eq!(s.get(0, 1), Some(&0.7310585786300049));
+        assert_eq!(s.get(1, 0), Some(&0.8807970779778823));
+        assert_eq!(s.get(1, 1), Some(&0.9525741268224334));
     }
 }

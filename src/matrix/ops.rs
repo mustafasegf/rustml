@@ -210,6 +210,7 @@ impl MulAssign<Matrix> for Matrix {
         }
 
         self.data = data;
+        self.cols = rhs.cols;
     }
 }
 
@@ -236,5 +237,112 @@ where
         }
 
         self.data = data;
+        self.cols = rhs.cols;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_add() {
+        let a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![6.0, 8.0, 10.0, 12.0]);
+        assert_eq!(a + b, expected);
+    }
+
+    #[test]
+    fn test_add_ref() {
+        let a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![6.0, 8.0, 10.0, 12.0]);
+        assert_eq!(&a + &b, expected);
+    }
+
+    #[test]
+    fn test_add_assign() {
+        let mut a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![6.0, 8.0, 10.0, 12.0]);
+        a += b;
+        assert_eq!(a, expected);
+    }
+
+    #[test]
+    fn test_add_assign_ref() {
+        let mut a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![6.0, 8.0, 10.0, 12.0]);
+        a += &b;
+        assert_eq!(a, expected);
+    }
+
+    #[test]
+    fn test_sub() {
+        let a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![-4.0, -4.0, -4.0, -4.0]);
+        assert_eq!(a - b, expected);
+    }
+
+    #[test]
+    fn test_sub_ref() {
+        let a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![-4.0, -4.0, -4.0, -4.0]);
+        assert_eq!(&a - &b, expected);
+    }
+
+    #[test]
+    fn test_sub_assign() {
+        let mut a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![-4.0, -4.0, -4.0, -4.0]);
+        a -= b;
+        assert_eq!(a, expected);
+    }
+
+    #[test]
+    fn test_sub_assign_ref() {
+        let mut a = Matrix::from_iter(2, 2, vec![1.0, 2.0, 3.0, 4.0]);
+        let b = Matrix::from_iter(2, 2, vec![5.0, 6.0, 7.0, 8.0]);
+        let expected = Matrix::from_iter(2, 2, vec![-4.0, -4.0, -4.0, -4.0]);
+        a -= &b;
+        assert_eq!(a, expected);
+    }
+
+    #[test]
+    fn test_mul() {
+        let a = Matrix::from_iter(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let b = Matrix::from_iter(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
+        let expected = Matrix::from_iter(2, 2, vec![58.0, 64.0, 139.0, 154.0]);
+        assert_eq!(a * b, expected);
+    }
+
+    #[test]
+    fn test_mul_ref() {
+        let a = Matrix::from_iter(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let b = Matrix::from_iter(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
+        let expected = Matrix::from_iter(2, 2, vec![58.0, 64.0, 139.0, 154.0]);
+        assert_eq!(&a * &b, expected);
+    }
+
+    #[test]
+    fn test_mul_assign() {
+        let mut a = Matrix::from_iter(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let b = Matrix::from_iter(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
+        let expected = Matrix::from_iter(2, 2, vec![58.0, 64.0, 139.0, 154.0]);
+        a *= b;
+        assert_eq!(a, expected);
+    }
+
+    #[test]
+    fn test_mul_assign_ref() {
+        let mut a = Matrix::from_iter(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+        let b = Matrix::from_iter(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);
+        let expected = Matrix::from_iter(2, 2, vec![58.0, 64.0, 139.0, 154.0]);
+        a *= &b;
+        assert_eq!(a, expected);
     }
 }

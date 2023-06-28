@@ -10,10 +10,10 @@ fn main() {
     let eps = 1e-1;
     let rate = 1e-1;
 
-    let mut nn = NeuralNetwork::new_random(&[2.0, 2.0, 1.0]);
-    let mut gradient = NeuralNetwork::new_random(&[2.0, 2.0, 1.0]);
+    let mut nn = NeuralNetwork::new_random(&[2, 2, 1]);
+    let mut gradient = NeuralNetwork::new_random(&[2, 2, 1]);
 
-    // println!("nn = {nn}");
+    println!("nn = {nn}");
 
     println!("cost = {}", nn.cost(&input, &output));
     for i in 0..10_000 {

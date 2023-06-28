@@ -10,7 +10,7 @@ pub struct NeuralNetwork {
 }
 
 impl NeuralNetwork {
-    pub fn new(data: &[f64]) -> Self {
+    pub fn new(data: &[usize]) -> Self {
         let size = data.len();
         assert!(size > 0);
 
@@ -21,18 +21,17 @@ impl NeuralNetwork {
             activation: Vec::with_capacity(size),
         };
 
-        nn.activation.push(Matrix::new(1, data[0] as usize));
+        nn.activation.push(Matrix::new(1, data[0]));
         for i in 1..size {
-            nn.weight
-                .push(Matrix::new(data[i - 1] as usize, data[i] as usize));
-            nn.bias.push(Matrix::new(1, data[i] as usize));
-            nn.activation.push(Matrix::new(1, data[i] as usize));
+            nn.weight.push(Matrix::new(data[i - 1], data[i]));
+            nn.bias.push(Matrix::new(1, data[i]));
+            nn.activation.push(Matrix::new(1, data[i]));
         }
 
         nn
     }
 
-    pub fn new_random(data: &[f64]) -> Self {
+    pub fn new_random(data: &[usize]) -> Self {
         let size = data.len();
         // let mut rng = StdRng::seed_from_u64(1);
         let mut rng = rand::thread_rng();
@@ -48,24 +47,24 @@ impl NeuralNetwork {
 
         nn.activation.push(Matrix::from_iter(
             1,
-            data[0] as usize,
+            data[0],
             std::iter::repeat_with(|| rng.gen_range(0.0..1.0)),
         ));
 
         for i in 1..size {
             nn.weight.push(Matrix::from_iter(
-                data[i - 1] as usize,
-                data[i] as usize,
+                data[i - 1],
+                data[i],
                 std::iter::repeat_with(|| rng.gen_range(0.0..1.0)),
             ));
             nn.bias.push(Matrix::from_iter(
                 1,
-                data[i] as usize,
+                data[i],
                 std::iter::repeat_with(|| rng.gen_range(0.0..1.0)),
             ));
             nn.activation.push(Matrix::from_iter(
                 1,
-                data[i] as usize,
+                data[i],
                 std::iter::repeat_with(|| rng.gen_range(0.0..1.0)),
             ));
         }

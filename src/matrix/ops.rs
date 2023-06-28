@@ -1,13 +1,7 @@
-use std::fmt::Display;
+use super::Matrix;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
-use num_traits::{NumAssignRef, NumRef};
-use rand::distributions::Standard;
-use rand::prelude::*;
-
-use super::Matrix;
-
-impl<T: NumRef + NumAssignRef + Copy + Display> Add for Matrix<T> {
+impl Add for Matrix {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -29,13 +23,13 @@ impl<T: NumRef + NumAssignRef + Copy + Display> Add for Matrix<T> {
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Add for &'a Matrix<T>
+impl<'a: 'b, 'b> Add for &'a Matrix
 where
-    &'a T: Add<&'b T, Output = T>,
+    &'a f64: Add<&'b f64, Output = f64>,
 {
-    type Output = Matrix<T>;
+    type Output = Matrix;
 
-    fn add(self, rhs: &'b Matrix<T>) -> Self::Output {
+    fn add(self, rhs: &'b Matrix) -> Self::Output {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
 
@@ -47,7 +41,7 @@ where
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> AddAssign for Matrix<T> {
+impl AddAssign for Matrix {
     fn add_assign(&mut self, rhs: Self) {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
@@ -59,7 +53,7 @@ impl<T: NumRef + NumAssignRef + Copy + Display> AddAssign for Matrix<T> {
     }
 }
 
-impl<'a, T: NumRef + NumAssignRef + Copy + Display> AddAssign<&'a Matrix<T>> for Matrix<T> {
+impl<'a> AddAssign<&'a Matrix> for Matrix {
     fn add_assign(&mut self, rhs: &'a Self) {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
@@ -71,7 +65,7 @@ impl<'a, T: NumRef + NumAssignRef + Copy + Display> AddAssign<&'a Matrix<T>> for
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> Sub for Matrix<T> {
+impl Sub for Matrix {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -93,13 +87,13 @@ impl<T: NumRef + NumAssignRef + Copy + Display> Sub for Matrix<T> {
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Sub for &'a Matrix<T>
+impl<'a: 'b, 'b> Sub for &'a Matrix
 where
-    &'a T: Sub<&'b T, Output = T>,
+    &'a f64: Sub<&'b f64, Output = f64>,
 {
-    type Output = Matrix<T>;
+    type Output = Matrix;
 
-    fn sub(self, rhs: &'b Matrix<T>) -> Self::Output {
+    fn sub(self, rhs: &'b Matrix) -> Self::Output {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
 
@@ -111,7 +105,7 @@ where
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> SubAssign for Matrix<T> {
+impl SubAssign for Matrix {
     fn sub_assign(&mut self, rhs: Self) {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
@@ -123,7 +117,7 @@ impl<T: NumRef + NumAssignRef + Copy + Display> SubAssign for Matrix<T> {
     }
 }
 
-impl<'a, T: NumRef + NumAssignRef + Copy + Display> SubAssign<&'a Matrix<T>> for Matrix<T> {
+impl<'a> SubAssign<&'a Matrix> for Matrix {
     fn sub_assign(&mut self, rhs: &'a Self) {
         assert!(self.rows == rhs.rows);
         assert!(self.cols == rhs.cols);
@@ -135,10 +129,7 @@ impl<'a, T: NumRef + NumAssignRef + Copy + Display> SubAssign<&'a Matrix<T>> for
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> Mul for Matrix<T>
-where
-    Standard: Distribution<T>,
-{
+impl Mul for Matrix {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -153,7 +144,7 @@ where
 
                 let acc = row_iter
                     .zip(col_iter)
-                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+                    .fold(0.0, |acc, (a, b)| acc + (*a * *b));
 
                 data.push(acc);
             }
@@ -162,19 +153,18 @@ where
         Self {
             data,
             rows: self.rows,
-            cols: self.cols,
+            cols: rhs.cols,
         }
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> Mul for &'a Matrix<T>
+impl<'a: 'b, 'b> Mul for &'a Matrix
 where
-    &'a T: Mul<&'b T, Output = T>,
-    Standard: Distribution<T>,
+    &'a f64: Mul<&'b f64, Output = f64>,
 {
-    type Output = Matrix<T>;
+    type Output = Matrix;
 
-    fn mul(self, rhs: &'b Matrix<T>) -> Self::Output {
+    fn mul(self, rhs: &'b Matrix) -> Self::Output {
         assert!(self.cols == rhs.rows);
 
         let mut data = Vec::with_capacity(self.rows * rhs.cols);
@@ -186,7 +176,7 @@ where
 
                 let acc = row_iter
                     .zip(col_iter)
-                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+                    .fold(0.0, |acc, (a, b)| acc + (*a * *b));
 
                 data.push(acc);
             }
@@ -194,16 +184,13 @@ where
 
         Matrix {
             rows: self.rows,
-            cols: self.cols,
+            cols: rhs.cols,
             data,
         }
     }
 }
 
-impl<T: NumRef + NumAssignRef + Copy + Display> MulAssign<Matrix<T>> for Matrix<T>
-where
-    Standard: Distribution<T>,
-{
+impl MulAssign<Matrix> for Matrix {
     fn mul_assign(&mut self, rhs: Self) {
         assert!(self.cols == rhs.rows);
 
@@ -216,7 +203,7 @@ where
 
                 let acc = row_iter
                     .zip(col_iter)
-                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+                    .fold(0.0, |acc, (a, b)| acc + (*a * *b));
 
                 data.push(acc);
             }
@@ -226,12 +213,11 @@ where
     }
 }
 
-impl<'a: 'b, 'b, T: NumRef + NumAssignRef + Copy + Display> MulAssign<&'a Matrix<T>> for Matrix<T>
+impl<'a: 'b, 'b> MulAssign<&'a Matrix> for Matrix
 where
-    &'a T: Mul<&'b T, Output = T>,
-    Standard: Distribution<T>,
+    &'a f64: Mul<&'b f64, Output = f64>,
 {
-    fn mul_assign(&mut self, rhs: &'b Matrix<T>) {
+    fn mul_assign(&mut self, rhs: &'b Matrix) {
         assert!(self.cols == rhs.rows);
 
         let mut data = Vec::with_capacity(self.rows * rhs.cols);
@@ -243,7 +229,7 @@ where
 
                 let acc = row_iter
                     .zip(col_iter)
-                    .fold(T::zero(), |acc, (a, b)| acc + (*a * *b));
+                    .fold(0.0, |acc, (a, b)| acc + (*a * *b));
 
                 data.push(acc);
             }

@@ -1,11 +1,9 @@
 mod ops;
-
-// use rand::prelude::*;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub struct Matrix {
-    data: Vec<f64>,
+    data: Vec<f32>,
     rows: usize,
     cols: usize,
 }
@@ -16,7 +14,7 @@ impl Matrix {
 
     pub fn from_iter<I>(row: usize, col: usize, iter: I) -> Self
     where
-        I: IntoIterator<Item = f64>,
+        I: IntoIterator<Item = f32>,
     {
         let data = iter.into_iter().take(col * row).collect::<Vec<_>>();
         assert_eq!(data.len(), row * col);
@@ -35,28 +33,28 @@ impl Matrix {
         self.cols
     }
 
-    pub fn get(&self, row: usize, col: usize) -> Option<&f64> {
+    pub fn get(&self, row: usize, col: usize) -> Option<&f32> {
         self.data.get(col + row * self.cols)
     }
 
-    pub fn get_mut(&mut self, row: usize, col: usize) -> Option<&mut f64> {
+    pub fn get_mut(&mut self, row: usize, col: usize) -> Option<&mut f32> {
         self.data.get_mut(col + row * self.cols)
     }
 
-    pub fn set(&mut self, row: usize, col: usize, value: f64) -> Option<f64> {
+    pub fn set(&mut self, row: usize, col: usize, value: f32) -> Option<f32> {
         let old = self.data.get(col + row * self.cols).map(|x| *x);
         self.data[col + row * self.cols] = value;
         old
     }
 
-    pub fn get_row(&self, row: usize) -> Option<impl Iterator<Item = &f64>> {
+    pub fn get_row(&self, row: usize) -> Option<impl Iterator<Item = &f32>> {
         match row < self.rows {
             true => Some(self.data[row * self.cols..(row + 1) * self.cols].iter()),
             false => None,
         }
     }
 
-    pub fn get_col(&self, col: usize) -> Option<impl Iterator<Item = &f64>> {
+    pub fn get_col(&self, col: usize) -> Option<impl Iterator<Item = &f32>> {
         match col < self.cols {
             true => Some((0..self.rows).map(move |row| self.get(row, col).unwrap())),
             false => None,
@@ -85,17 +83,56 @@ impl Matrix {
         }
     }
 
-    pub fn sigmoid(&self) -> Self {
-        Self::from_iter(
-            self.rows,
-            self.cols,
-            self.iter().map(|x| 1.0 / (1.0 + (-*x).exp())),
-        )
+    pub fn sigmoid(&mut self) {
+        for i in 0..self.data.len() {
+            self.data[i] = 1.0 / (1.0 + (-self.data[i]).exp());
+        }
+    }
+
+    pub fn relu(&mut self) {
+        for i in 0..self.data.len() {
+            self.data[i] = self.data[i].max(0.0);
+        }
+    }
+
+    pub fn fill(&mut self, value: f32) {
+        for i in 0..self.data.len() {
+            self.data[i] = value;
+        }
+    }
+
+    pub fn copy_from(&mut self, other: &Self) {
+        assert_eq!(self.rows, other.rows);
+        assert_eq!(self.cols, other.cols);
+        self.data.copy_from_slice(&other.data);
+    }
+
+    pub fn add_from(&mut self, other: &Self) {
+        assert_eq!(self.rows, other.rows);
+        assert_eq!(self.cols, other.cols);
+        for i in 0..self.data.len() {
+            self.data[i] += other.data[i];
+        }
+    }
+
+    pub fn dot_from(&mut self, a: &Self, b: &Self) {
+        assert_eq!(self.rows, a.rows);
+        assert_eq!(self.cols, b.cols);
+        assert_eq!(a.cols, b.rows);
+        for row in 0..self.rows {
+            for col in 0..self.cols {
+                let mut sum = 0.0;
+                for i in 0..a.cols {
+                    sum += a.data[row * a.cols + i] * b.data[i * b.cols + col];
+                }
+                self.data[row * self.cols + col] = sum;
+            }
+        }
     }
 }
 
 impl Deref for Matrix {
-    type Target = Vec<f64>;
+    type Target = Vec<f32>;
 
     fn deref(&self) -> &Self::Target {
         &self.data
@@ -106,7 +143,7 @@ impl std::fmt::Display for Matrix {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in 0..self.rows {
             for col in 0..self.cols {
-                write!(f, "{} ", self.data[row * self.cols + col])?;
+                write!(f, "{:.6} ", self.data[row * self.cols + col])?;
             }
             writeln!(f)?;
         }
@@ -208,13 +245,13 @@ mod tests {
 
     #[test]
     fn test_sigmoid() {
-        let m = Matrix::from_iter(2, 2, vec![0.0, 1.0, 2.0, 3.0]);
-        let s = m.sigmoid();
-        assert_eq!(s.rows(), 2);
-        assert_eq!(s.cols(), 2);
-        assert_eq!(s.get(0, 0), Some(&0.5));
-        assert_eq!(s.get(0, 1), Some(&0.7310585786300049));
-        assert_eq!(s.get(1, 0), Some(&0.8807970779778823));
-        assert_eq!(s.get(1, 1), Some(&0.9525741268224334));
+        let mut m = Matrix::from_iter(2, 2, vec![0.0, 1.0, 2.0, 3.0]);
+        m.sigmoid();
+        assert_eq!(m.rows(), 2);
+        assert_eq!(m.cols(), 2);
+        assert_eq!(m.get(0, 0), Some(&0.5));
+        assert_eq!(m.get(0, 1), Some(&0.7310585786300049));
+        assert_eq!(m.get(1, 0), Some(&0.8807970779778823));
+        assert_eq!(m.get(1, 1), Some(&0.9525741268224334));
     }
 }

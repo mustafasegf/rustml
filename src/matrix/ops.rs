@@ -25,7 +25,7 @@ impl Add for Matrix {
 
 impl<'a: 'b, 'b> Add for &'a Matrix
 where
-    &'a f64: Add<&'b f64, Output = f64>,
+    &'a f32 : Add<&'b f32 , Output = f32 >,
 {
     type Output = Matrix;
 
@@ -89,7 +89,7 @@ impl Sub for Matrix {
 
 impl<'a: 'b, 'b> Sub for &'a Matrix
 where
-    &'a f64: Sub<&'b f64, Output = f64>,
+    &'a f32 : Sub<&'b f32 , Output = f32 >,
 {
     type Output = Matrix;
 
@@ -160,7 +160,7 @@ impl Mul for Matrix {
 
 impl<'a: 'b, 'b> Mul for &'a Matrix
 where
-    &'a f64: Mul<&'b f64, Output = f64>,
+    &'a f32 : Mul<&'b f32 , Output = f32 >,
 {
     type Output = Matrix;
 
@@ -216,7 +216,7 @@ impl MulAssign<Matrix> for Matrix {
 
 impl<'a: 'b, 'b> MulAssign<&'a Matrix> for Matrix
 where
-    &'a f64: Mul<&'b f64, Output = f64>,
+    &'a f32 : Mul<&'b f32 , Output = f32 >,
 {
     fn mul_assign(&mut self, rhs: &'b Matrix) {
         assert!(self.cols == rhs.rows);
